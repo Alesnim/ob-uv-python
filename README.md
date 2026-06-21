@@ -174,3 +174,17 @@ print(statistics.stdev(data))
   If the last statement is an assignment or a compound statement (`if`, `for`, etc.),
   the result is empty. Wrap in an explicit expression if needed.
 - Packages installed via `:with` are cached by uv — repeat runs are fast.
+
+## MELPA
+
+Not yet submitted. To submit, open a PR against
+[melpa/melpa](https://github.com/melpa/melpa) adding a recipe file at
+`recipes/ob-uv-python`:
+
+```elisp
+(ob-uv-python :fetcher github :repo "alesnim/ob-uv-python")
+```
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).

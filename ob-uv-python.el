@@ -1,13 +1,38 @@
 ;;; ob-uv-python.el --- Org-babel backend for Python via uv run  -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2026 Ales Nikiforov
+
 ;; Author: Ales Nikiforov <alesnim@gmail.com>
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.1") (org "9.6"))
-;; Keywords: literate-programming, languages, python, uv
+;; Keywords: outlines, literate programming, tools, processes, python, uv
+;; URL: https://github.com/alesnim/ob-uv-python
 ;; Homepage: https://github.com/alesnim/ob-uv-python
 
 ;; This file is NOT part of GNU Emacs.
 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; ob-uv-python lets you run Python org-babel source blocks through
+;; `uv run' instead of a bare interpreter.  This gives every code block
+;; access to uv's package management: install dependencies on the fly
+;; with `:with', pin a Python version with `:python', or run PEP 723
+;; inline-script blocks (auto-detected from a `# /// script' header)
+;; with per-block dependencies and no shared environment.
+;;
 ;; Header args:
 ;;   :python  VERSION   - Python version, e.g. "3.12"
 ;;   :with    PKGS      - Extra packages, space/comma separated, e.g. "requests rich"
@@ -17,6 +42,8 @@
 ;;   :env-file PATH     - Pass --env-file PATH to uv
 ;;   :extra-args STR    - Raw extra arguments appended verbatim to uv run
 ;;   :uv      PATH      - Path to uv binary (overrides ob-uv-python-command)
+;;
+;; See the README for full usage examples.
 
 ;;; Code:
 
@@ -126,7 +153,7 @@ __ob_run__()
           (org-babel--get-vars params)))
 
 (defun ob-uv-python--pep723-p (body)
-  "Return non-nil if BODY contains a PEP 723 inline script header."
+  "Return non-nil if BODY has a PEP 723 inline script header."
   (string-match-p "\\`[[:space:]]*# /// script" body))
 
 (defun ob-uv-python--build-cmd (params body)
