@@ -13,7 +13,7 @@ Python versions, and use PEP 723 inline script headers — all from header args.
 
 ```emacs-lisp
 (package! ob-uv-python
-  :recipe (:local-dir "~/ob-uv-python"))
+  :recipe (:host github :repo "alesnim/ob-uv-python"))
 ```
 
 `config.el`:
