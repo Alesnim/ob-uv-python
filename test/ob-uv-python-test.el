@@ -74,6 +74,19 @@
   (let ((cmd (ob-uv-python--build-cmd '((:extra-args . "--offline")) "print(1)")))
     (should (string-match-p "--offline\\'" cmd))))
 
+(ert-deftest ob-uv-python-test-build-cmd-missing-uv-signals-user-error ()
+  (let ((err (should-error
+              (ob-uv-python--build-cmd '((:uv . "totally-not-a-real-binary-xyz")) "print(1)")
+              :type 'user-error)))
+    (should (string-match-p "totally-not-a-real-binary-xyz" (cadr err)))))
+
+(ert-deftest ob-uv-python-test-expand-tilde ()
+  (should (equal (ob-uv-python--expand-tilde "/abs/path") "/abs/path"))
+  (should (equal (ob-uv-python--expand-tilde "bare-name") "bare-name"))
+  (should (equal (ob-uv-python--expand-tilde nil) nil))
+  (should (equal (ob-uv-python--expand-tilde "~/.local/bin/uv")
+                  (expand-file-name "~/.local/bin/uv"))))
+
 ;;; Integration (requires a real `uv' binary)
 
 (ert-deftest ob-uv-python-test-execute-output ()

@@ -162,19 +162,32 @@ numbers or symbols rather than strings."
   "Return non-nil if BODY has a PEP 723 inline script header."
   (string-match-p "\\`[[:space:]]*# /// script" body))
 
+(defun ob-uv-python--expand-tilde (path)
+  "Expand a leading ~ in PATH.
+`shell-quote-argument' escapes a leading ~, which stops the shell
+from expanding it, so a literal ~ in PATH must be resolved here
+instead."
+  (and path (if (string-prefix-p "~" path) (expand-file-name path) path)))
+
 (defun ob-uv-python--build-cmd (params body)
   "Build the uv run command string from PARAMS and BODY.
 BODY is used to auto-detect PEP 723 script mode."
-  (let* ((uv      (or (ob-uv-python--to-string (cdr (assq :uv params))) ob-uv-python-command))
+  (let* ((uv      (ob-uv-python--expand-tilde
+                    (or (ob-uv-python--to-string (cdr (assq :uv params))) ob-uv-python-command)))
          (pyver   (ob-uv-python--to-string (cdr (assq :python params))))
          (with    (ob-uv-python--to-string (cdr (assq :with params))))
          (noproj  (ob-uv-python--flag-p (cdr (assq :no-project params))))
          (iso     (ob-uv-python--flag-p (cdr (assq :isolated params))))
          (script  (or (ob-uv-python--flag-p (cdr (assq :script params)))
                       (ob-uv-python--pep723-p body)))
-         (envfile (ob-uv-python--to-string (cdr (assq :env-file params))))
+         (envfile (ob-uv-python--expand-tilde
+                    (ob-uv-python--to-string (cdr (assq :env-file params)))))
          (extra   (ob-uv-python--to-string (cdr (assq :extra-args params))))
          args)
+    (unless (executable-find uv)
+      (user-error
+       "ob-uv-python: `%s' not found; install uv (https://docs.astral.sh/uv/) or set `ob-uv-python-command' or the `:uv' header arg"
+       uv))
     (push uv args)
     (push "run" args)
     ;; uv prints resolver/install status (e.g. "Installed 1 package in 58ms")
