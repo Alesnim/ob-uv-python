@@ -152,6 +152,12 @@ __ob_run__()
                     (ob-uv-python--val-to-python (cdr pair))))
           (org-babel--get-vars params)))
 
+(defun ob-uv-python--to-string (val)
+  "Coerce VAL to a string, or return nil.
+Header args without quotes (e.g. `:python 3.8') are read by Org as
+numbers or symbols rather than strings."
+  (and val (if (stringp val) val (format "%s" val))))
+
 (defun ob-uv-python--pep723-p (body)
   "Return non-nil if BODY has a PEP 723 inline script header."
   (string-match-p "\\`[[:space:]]*# /// script" body))
@@ -159,15 +165,15 @@ __ob_run__()
 (defun ob-uv-python--build-cmd (params body)
   "Build the uv run command string from PARAMS and BODY.
 BODY is used to auto-detect PEP 723 script mode."
-  (let* ((uv      (or (cdr (assq :uv params)) ob-uv-python-command))
-         (pyver   (cdr (assq :python params)))
-         (with    (cdr (assq :with params)))
+  (let* ((uv      (or (ob-uv-python--to-string (cdr (assq :uv params))) ob-uv-python-command))
+         (pyver   (ob-uv-python--to-string (cdr (assq :python params))))
+         (with    (ob-uv-python--to-string (cdr (assq :with params))))
          (noproj  (ob-uv-python--flag-p (cdr (assq :no-project params))))
          (iso     (ob-uv-python--flag-p (cdr (assq :isolated params))))
          (script  (or (ob-uv-python--flag-p (cdr (assq :script params)))
                       (ob-uv-python--pep723-p body)))
-         (envfile (cdr (assq :env-file params)))
-         (extra   (cdr (assq :extra-args params)))
+         (envfile (ob-uv-python--to-string (cdr (assq :env-file params))))
+         (extra   (ob-uv-python--to-string (cdr (assq :extra-args params))))
          args)
     (push uv args)
     (push "run" args)

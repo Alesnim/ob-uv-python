@@ -43,6 +43,13 @@
     (should (string-match-p "--python 3\\.12" cmd))
     (should (string-match-p "\\bpython\\b" cmd))))
 
+(ert-deftest ob-uv-python-test-build-cmd-unquoted-python-version ()
+  ;; Org reads an unquoted ":python 3.8" header arg as a Lisp float,
+  ;; not a string -- regression test for the resulting wrong-type-argument.
+  (let* ((raw (org-babel-parse-header-arguments ":python 3.8"))
+         (cmd (ob-uv-python--build-cmd raw "print(1)")))
+    (should (string-match-p "--python 3\\.8\\b" cmd))))
+
 (ert-deftest ob-uv-python-test-build-cmd-with-packages ()
   (let ((cmd (ob-uv-python--build-cmd '((:with . "rich httpx")) "print(1)")))
     (should (string-match-p "--with rich" cmd))
