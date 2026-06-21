@@ -1,8 +1,8 @@
 ;;; ob-uv-python.el --- Org-babel backend for Python via uv run  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2026 Ales Nikiforov
+;; Copyright (C) 2026 Ales Nim
 
-;; Author: Ales Nikiforov <alesnim@gmail.com>
+;; Author: Ales Nim <alesnim@gmail.com>
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.1") (org "9.6"))
 ;; Keywords: outlines, literate programming, tools, processes, python, uv
@@ -73,14 +73,14 @@
   "Default header args for uv-python source blocks.")
 
 (defconst org-babel-header-args:uv-python
-  '((python     . :any)
-    (with       . :any)
-    (no-project . ((yes no)))
-    (script     . ((yes no)))
-    (isolated   . ((yes no)))
-    (env-file   . :any)
-    (extra-args . :any)
-    (uv         . :any))
+  '((python     . :any)  ; Python version to run, e.g. "3.12" -> --python 3.12
+    (with       . :any)  ; extra packages to install, space/comma separated -> --with PKG (repeated)
+    (no-project . ((yes no)))  ; ignore the current project's dependencies -> --no-project
+    (script     . ((yes no))) ; force PEP 723 inline-script mode -> --script (auto-detected otherwise)
+    (isolated   . ((yes no)))  ; run in an isolated venv, ignoring any active one -> --isolated
+    (env-file   . :any)  ; path to a dotenv file to load -> --env-file PATH
+    (extra-args . :any)  ; raw string appended verbatim after the built `uv run' command
+    (uv         . :any))  ; path to the uv binary for this block, overriding `ob-uv-python-command'
   "Header args specific to uv-python blocks.")
 
 ;; Preamble injected before user body for :results value mode.
@@ -177,6 +177,11 @@ BODY is used to auto-detect PEP 723 script mode."
          args)
     (push uv args)
     (push "run" args)
+    ;; uv prints resolver/install status (e.g. "Installed 1 package in 58ms")
+    ;; to stderr even on success, which org-babel-eval treats as an error
+    ;; condition and reports via a pop-up error buffer.  -q silences that
+    ;; noise without touching the executed program's own stderr/exit code.
+    (push "--quiet" args)
     (when (and pyver (not (string-empty-p pyver)))
       (push "--python" args)
       (push pyver args))

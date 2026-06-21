@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/alesnim/ob-uv-python/actions/workflows/ci.yml/badge.svg)](https://github.com/alesnim/ob-uv-python/actions/workflows/ci.yml)
 
-Author: Ales Nikiforov
 
 Run Python org-babel blocks through [uv run](https://docs.astral.sh/uv/). Install packages on the fly, pin
 Python versions, and use PEP 723 inline script headers — all from header args.

@@ -43,6 +43,12 @@
     (should (string-match-p "--python 3\\.12" cmd))
     (should (string-match-p "\\bpython\\b" cmd))))
 
+(ert-deftest ob-uv-python-test-build-cmd-always-quiet ()
+  ;; uv prints resolver/install status to stderr even on success, which
+  ;; org-babel-eval mistakes for an error condition; -q silences it.
+  (let ((cmd (ob-uv-python--build-cmd nil "print(1)")))
+    (should (string-match-p "--quiet" cmd))))
+
 (ert-deftest ob-uv-python-test-build-cmd-unquoted-python-version ()
   ;; Org reads an unquoted ":python 3.8" header arg as a Lisp float,
   ;; not a string -- regression test for the resulting wrong-type-argument.
@@ -76,6 +82,18 @@
                   '((:no-project . "yes") (:result-params "replace" "output") (:result-type . output))))
          (out (org-babel-execute:uv-python "print('hello')" params)))
     (should (equal out "hello\n"))))
+
+(ert-deftest ob-uv-python-test-execute-with-package-no-stderr-noise ()
+  ;; uv's own "Installed N packages..." status line goes to stderr on
+  ;; success; without -q this trips org-babel-eval's error reporting.
+  (skip-unless (executable-find "uv"))
+  (ignore-errors (kill-buffer org-babel-error-buffer-name))
+  (let* ((params (org-babel-process-params
+                  '((:no-project . "yes") (:with . "six")
+                    (:result-params "replace" "output") (:result-type . output))))
+         (out (org-babel-execute:uv-python "print('hi')" params)))
+    (should (equal out "hi\n"))
+    (should-not (get-buffer org-babel-error-buffer-name))))
 
 (ert-deftest ob-uv-python-test-execute-value-expression ()
   (skip-unless (executable-find "uv"))
